@@ -8,6 +8,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
+  
+  List<Color> colors = [Colors.blue ,Colors.red , Colors.orange , Colors.yellow];
+
   AnimationController controller;
   int selectedIndex = 0;
 
@@ -24,14 +27,16 @@ class _HomePageState extends State<HomePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      body: Container(color: colors[selectedIndex],),
       bottomNavigationBar: NavBar(
         selectedIndex: selectedIndex,
-        bgColor: Colors.black,
+        bgColor: colors[selectedIndex],
         touchCallback: (int index) {
           controller.reset();
           controller.forward();
           selectedIndex = index;
         },
+        names: ['Home' , 'Card' , 'Lock' , 'Profile'],
         icons: [
           Icons.home,
           Icons.shopping_cart,

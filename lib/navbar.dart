@@ -7,26 +7,28 @@ class NavBar extends StatefulWidget {
       icons; //icons taht it will contain we can add text as well
   final int selectedIndex; // which icon is selected
   final Color bgColor; //color of the navbar that can be varied by the user
+  final List<String> names;
 
   final Function touchCallback; //callback to check if navbar is clicked
 
   NavBar(
       {Key key,
       this.icons = const [],
+      this.names = const [],
       this.bgColor = Colors.black,
       this.selectedIndex = 0,
       @required this.touchCallback})
       : super(key: key);
 
   @override
-  _NavBarState createState() => _NavBarState();
+  _NavBarState createState() => _NavBarState(selectedIndex: selectedIndex);
 }
 
 class _NavBarState extends State<NavBar> with SingleTickerProviderStateMixin {
   int selectedIndex = 0; // which is selected
   int newIndex = 0; // new one that is to be selected
   final _circleBottomPosition = 50 + kBottomNavigationBarHeight * 0.4;
-  double kCircleSize = RelativeSize.getSize(62.0);
+  final double kCircleSize = RelativeSize.getSize(62.0);
 
   Animation<double> positionAnim; // when it is positioned
   Animation<double> riseAnim; // when it rises  to place
@@ -42,7 +44,7 @@ class _NavBarState extends State<NavBar> with SingleTickerProviderStateMixin {
     controller = new AnimationController(
         vsync: this, duration: Duration(milliseconds: 500));
     positionAnim = new Tween<double>(
-            begin:(selectedIndex).toDouble(), end: (selectedIndex + 1).toDouble())
+            begin: (selectedIndex) * 1.0, end: (selectedIndex + 1) * 1.0)
         .animate(CurvedAnimation(curve: Curves.bounceIn, parent: controller));
     sinkAnim = new Tween<double>(begin: 0.0, end: _circleBottomPosition)
         .animate(CurvedAnimation(
@@ -77,9 +79,23 @@ class _NavBarState extends State<NavBar> with SingleTickerProviderStateMixin {
               child: Container(
                 height: kBottomNavigationBarHeight * 1.6,
                 width: _size.width / 5,
-                child: Icon(
-                  widget.icons[i],
-                  color: Colors.grey,
+                child: Column(
+                  children: <Widget>[
+                    Icon(
+                      widget.icons[i],
+                      color: Colors.grey,
+                    ),
+                    SizedBox(
+                      height: 5.0,
+                    ),
+                    Text(
+                      getNameOfIcon(),
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15.0),
+                    )
+                  ],
                 ),
               ),
             ),
@@ -111,7 +127,7 @@ class _NavBarState extends State<NavBar> with SingleTickerProviderStateMixin {
       widget.touchCallback(index);
     }
     newIndex = index;
-    positionAnim = Tween<double>(begin: selectedIndex.toDouble(), end: index.toDouble())
+    positionAnim = Tween<double>(begin: selectedIndex * 1.0, end: index * 1.0)
         .animate(CurvedAnimation(
       parent: controller,
       curve: Curves.ease,
@@ -123,12 +139,12 @@ class _NavBarState extends State<NavBar> with SingleTickerProviderStateMixin {
   //function to update the widget
   @override
   void didUpdateWidget(NavBar oldWidget) {
-    super.didUpdateWidget(oldWidget); // ? declare in order to access previous state
+    super.didUpdateWidget(oldWidget);
     if (oldWidget.selectedIndex == widget.selectedIndex) {
       return;
     }
-    tapped(widget.selectedIndex,
-        false); // function to check if the button is tapped
+    tapped(widget.selectedIndex, false);
+    // function to check if the button is tapped
   }
 
   // to ensure it is at the poistion we want
@@ -158,6 +174,16 @@ class _NavBarState extends State<NavBar> with SingleTickerProviderStateMixin {
     );
   }
 
+  String getNameOfIcon() {
+    String name;
+    if (controller.value < 0.5) {
+      name = widget.names[selectedIndex];
+    } else {
+      name = widget.names[newIndex];
+    }
+    return name;
+  }
+
   @override
   Widget build(BuildContext context) {
     _size = MediaQuery.of(context).size;
@@ -167,23 +193,6 @@ class _NavBarState extends State<NavBar> with SingleTickerProviderStateMixin {
       color: widget.bgColor,
       child: Stack(
         children: <Widget>[
-          Positioned(
-              left: circleLeftPadding,
-              top: getCircleYPosition(),
-              child: Container(
-                margin: EdgeInsets.only(left: circleLeftPadding),
-                child: SizedBox(
-                  height: kCircleSize,
-                  width: kCircleSize,
-                  child: Material(
-                    color: Colors.black,
-                    elevation: 2.0,
-                    type: MaterialType.circle,
-                    clipBehavior: Clip.antiAlias,
-                    child: getMainIcon(),
-                  ),
-                ),
-              )),
           ClipPath(
             clipBehavior: Clip.antiAlias,
             clipper: NavBarClipper(
@@ -210,6 +219,26 @@ class _NavBarState extends State<NavBar> with SingleTickerProviderStateMixin {
               ),
             ),
           ),
+          Positioned(
+              left: (controller.isAnimating
+                      ? positionAnim.value
+                      : selectedIndex) *
+                  (_size.width / widget.icons.length),
+              top: getCircleYPosition(),
+              child: Container(
+                margin: EdgeInsets.only(left: circleLeftPadding),
+                child: SizedBox(
+                  height: kCircleSize,
+                  width: kCircleSize,
+                  child: Material(
+                    color: Color(0xfff2a10c),
+                    elevation: 2.0,
+                    type: MaterialType.circle,
+                    clipBehavior: Clip.antiAlias,
+                    child: getMainIcon(),
+                  ),
+                ),
+              )),
         ],
       ),
     );
@@ -227,53 +256,54 @@ class NavBarClipper extends CustomClipper<Path> {
 
   @override
   Path getClip(Size size) {
+    final sectionWidth = size.width / numberOfIcons;
     var path = new Path();
-    path.moveTo(0.0, 0.0); // set the path at origin of the navbar
+    path.moveTo(0.0, 0.0);
+    path.addOval(Rect.fromLTRB(-iconHeight, 0.0, sectionWidth, -iconHeight));
 
     // Draw notch
-    final sectionWidth = size.width / numberOfIcons;
 
-    final curveControlOffset = sectionWidth * 0.45;
+    // final curveControlOffset = sectionWidth * 0.45;
 
     final topPadding = topPaddingFactor * size.height;
 
-    path.lineTo((animatedIndex * sectionWidth) - curveControlOffset, 0);
+    // path.lineTo((animatedIndex * sectionWidth) - curveControlOffset, 0);
 
-    final firstControlPoint = Offset((animatedIndex * sectionWidth), 0);
+    // final firstControlPoint = Offset((animatedIndex * sectionWidth), 0);
 
-    final secondControlPoint =
-        Offset((animatedIndex * sectionWidth), iconHeight);
-    final secondEndPoint = Offset(
-        (animatedIndex * sectionWidth) + curveControlOffset, iconHeight);
+    // final secondControlPoint =
+    //     Offset((animatedIndex * sectionWidth), iconHeight);
+    // final secondEndPoint =
+    //     Offset((animatedIndex * sectionWidth) + curveControlOffset, iconHeight);
 
-    path.cubicTo(
-        firstControlPoint.dx,
-        firstControlPoint.dy,
-        secondControlPoint.dx,
-        secondControlPoint.dy,
-        secondEndPoint.dx,
-        secondEndPoint.dy);
+    // path.cubicTo(
+    //     firstControlPoint.dx,
+    //     firstControlPoint.dy,
+    //     secondControlPoint.dx,
+    //     secondControlPoint.dy,
+    //     secondEndPoint.dx,
+    //     secondEndPoint.dy);
 
-    path.lineTo(
-        ((animatedIndex + 1) * sectionWidth) - curveControlOffset, iconHeight);
-    final thirdControlPoint =
-        Offset(((animatedIndex + 1) * sectionWidth), iconHeight);
+    // path.lineTo(
+    //     ((animatedIndex + 1) * sectionWidth) - curveControlOffset, iconHeight);
+    // final thirdControlPoint =
+    //     Offset(((animatedIndex + 1) * sectionWidth), iconHeight);
 
-    final fourthControlPoint = Offset(((animatedIndex + 1) * sectionWidth), 0);
-    final fourthEndPoint =
-        Offset(((animatedIndex + 1) * sectionWidth) + curveControlOffset, 0);
+    // final fourthControlPoint = Offset(((animatedIndex + 1) * sectionWidth), 0);
+    // final fourthEndPoint =
+    //     Offset(((animatedIndex + 1) * sectionWidth) + curveControlOffset, 0);
 
-    path.cubicTo(
-        thirdControlPoint.dx,
-        thirdControlPoint.dy,
-        fourthControlPoint.dx,
-        fourthControlPoint.dy,
-        fourthEndPoint.dx,
-        fourthEndPoint.dy);
-    path.lineTo(size.width, 0);
+    // path.cubicTo(
+    //     thirdControlPoint.dx,
+    //     thirdControlPoint.dy,
+    //     fourthControlPoint.dx,
+    //     fourthControlPoint.dy,
+    //     fourthEndPoint.dx,
+    //     fourthEndPoint.dy);
+    // path.lineTo(size.width, 0);
 
-    path =
-        path.transform(Matrix4.translation(math.Vector3(0, topPadding, 0)).storage);
+    path = path
+        .transform(Matrix4.translation(math.Vector3(0, topPadding, 0)).storage);
 
     path.lineTo(size.width, size.height);
     path.lineTo(0, size.height);
@@ -282,5 +312,7 @@ class NavBarClipper extends CustomClipper<Path> {
   }
 
   @override
-  bool shouldReclip(CustomClipper oldClipper) => false;
+  bool shouldReclip(CustomClipper oldClipper) {
+    return (oldClipper as NavBarClipper).animatedIndex != animatedIndex;
+  }
 }
