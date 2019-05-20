@@ -182,9 +182,48 @@ class _NavBarState extends State<NavBar> with SingleTickerProviderStateMixin {
                 ),
               ),
             )
-          )
+          ),
+          ClipPath(
+            clipBehavior: Clip.antiAlias,
+            clipper: NavBarClipper(
+              controller.isAnimating
+                  ? positionAnim.value
+                  : selectedIndex * 1.0,
+              widget.icons.length
+            ),
+            child: Container(
+              height: kBottomNavigationBarHeight * 1.6,
+              width: _size.width,
+              child: Material(
+                color: Colors.white,
+                elevation: 4,
+                child: Container(
+                  margin:
+                      EdgeInsets.only(top: kBottomNavigationBarHeight * 0.4),
+                  height: kBottomNavigationBarHeight * 1.2,
+                  width: _size.width,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: smallIcons(),
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
+}
+
+class NavBarClipper extends CustomClipper<ClipOval>{
+  @override
+  getClip(Size size) {
+    
+    return null;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper oldClipper) =>false;
+
 }
