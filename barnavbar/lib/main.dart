@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 /*  
     Yet another beautiful Navbar by Aayush Malhotra(AadumKhor).
     Use it well or don't coz it's gonna make your project wayyyy   
@@ -11,7 +9,13 @@ import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
 
+List<IconData> icons = [Icons.home, Icons.list, Icons.ac_unit];
+List<Color> colors = [Colors.red, Colors.blue, Colors.yellow];
+List<String> names = ['Home', 'List', 'ACTheek'];
+
 class MyApp extends StatelessWidget {
+  int selectedIndex = 0;
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -26,6 +30,17 @@ class MyApp extends StatelessWidget {
             child: Text('I am IronMan'),
           ),
         ),
+        bottomNavigationBar: BarNavbar(
+          icons: icons,
+          colors: colors,
+          names: names,
+          bgColor: Colors.white,
+          textColor: Colors.black,
+          selectedIndex: selectedIndex,
+          tapCallback: (int index) {
+            selectedIndex = index;
+          },
+        ),
       ),
     );
   }
@@ -38,6 +53,7 @@ class BarNavbar extends StatefulWidget {
   final Color bgColor;
   final Color textColor;
   final int selectedIndex;
+
   final Function tapCallback;
 
   BarNavbar(
@@ -47,7 +63,7 @@ class BarNavbar extends StatefulWidget {
       this.colors = const [],
       this.names = const [],
       this.selectedIndex = 0,
-      this.tapCallback,
+      @required this.tapCallback,
       this.textColor = Colors.black});
   @override
   _BarNavbarState createState() => _BarNavbarState(selectedIndex);
@@ -59,11 +75,11 @@ class _BarNavbarState extends State<BarNavbar>
 
   double squeezLength = 10.0; //squeezLength of the bar
   double fullLength = 25.0; // full Length of the bar
-  int selectedIndex; // selected currently
-  int newIndex; // new one that has to be updated
+  int selectedIndex = 0; // selected currently
+  int newIndex = 0; // new one that has to be updated
 
   Animation<double> posAnim; //animation of the selected bar
-  Animation<double> colorAnim;
+//   Animation<double> colorAnim;
   //color change** for the time being double but I think color would be better
   Animation<double> squeezAnim; //squeez to add a good touch
   Animation<double>
@@ -81,17 +97,16 @@ class _BarNavbarState extends State<BarNavbar>
     posAnim = new Tween<double>(
             begin: selectedIndex * 1.0, end: (selectedIndex + 1) * 1.0)
         .animate(CurvedAnimation(parent: controller, curve: Curves.bounceIn));
-    colorAnim = new Tween<double>(
-            begin: selectedIndex * 1.0, end: (selectedIndex + 1) * 1.0)
-        .animate(CurvedAnimation(parent: controller, curve: Curves.bounceIn));
+    // colorAnim = new Tween<double>(
+    //         begin: selectedIndex * 1.0, end: (selectedIndex + 1) * 1.0)
+    // .animate(CurvedAnimation(parent: controller, curve: Curves.bounceIn));
     squeezAnim = new Tween(begin: fullLength, end: squeezLength).animate(
         CurvedAnimation(
             parent: controller,
             curve: Interval(0.0, 0.15, curve: Curves.ease)));
     stretchAnim = new Tween(begin: squeezLength, end: fullLength).animate(
         CurvedAnimation(
-            parent: controller,
-            curve: Interval(0.0, 0.15, curve: Curves.ease)));
+            parent: controller, curve: Interval(0.5, 1.0, curve: Curves.ease)));
     controller.addListener(() => setState(() {}));
     controller.addStatusListener((status) {
       if (controller.isCompleted) {
@@ -109,7 +124,7 @@ class _BarNavbarState extends State<BarNavbar>
         child: Container(
           child: InkResponse(
             onTap: () {
-              //   tapped(i, true);
+              tapped(i, true);
             },
             child: Opacity(
               opacity: getOpacityForIndex(i),
@@ -155,6 +170,21 @@ class _BarNavbarState extends State<BarNavbar>
       parent: controller,
       curve: Curves.ease,
     ));
+    textAnim = Tween<double>(begin: selectedIndex * 1.0, end: index * 1.0)
+        .animate(CurvedAnimation(
+      parent: controller,
+      curve: Curves.ease,
+    ));
+    squeezAnim = Tween<double>(begin: fullLength, end: squeezLength)
+        .animate(CurvedAnimation(
+      parent: controller,
+      curve: Curves.ease,
+    ));
+    stretchAnim = Tween<double>(begin: squeezLength, end: fullLength)
+        .animate(CurvedAnimation(
+      parent: controller,
+      curve: Curves.ease,
+    ));
 
     controller.forward();
   }
@@ -170,8 +200,91 @@ class _BarNavbarState extends State<BarNavbar>
     // function to check if the button is tapped
   }
 
+  // get the selected icon
+  Icon getMainIcon() {
+    IconData icon;
+    if (controller.value < 0.5) {
+      icon = widget.icons[selectedIndex];
+    } else {
+      icon = widget.icons[newIndex];
+    }
+    return Icon(
+      icon,
+      size: 30.0,
+      color: widget.colors[newIndex],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container();
+    _size = MediaQuery.of(context).size;
+    //just to ensure that the bar stays within the limits
+    final sectionWidth = _size.width / widget.icons.length;
+    return Container(
+      color: widget.bgColor,
+      child: Stack(
+        children: <Widget>[
+          Container(
+            height: kBottomNavigationBarHeight * 1.2,
+            width: double.infinity,
+            child: Material(
+              color: Colors.white,
+              elevation: 4,
+              child: Container(
+                margin: EdgeInsets.only(top: kBottomNavigationBarHeight * 0.4),
+                height: kBottomNavigationBarHeight * 1.2,
+                width: _size.width,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: smallIcons(),
+                ),
+              ),
+            ),
+          ),
+          //the bar that moves
+          Positioned(
+              left: (controller.isAnimating ? posAnim.value : selectedIndex) *
+                  (_size.width / widget.icons.length),
+              child: Container(
+                margin: EdgeInsets.only(left: sectionWidth / 10),
+                child: SizedBox(
+                  height: 4.0,
+                  width: squeezAnim.isCompleted
+                      ? stretchAnim.value
+                      : (squeezAnim.value / squeezAnim.value) * sectionWidth,
+                  child: Material(
+                    color: widget.colors[selectedIndex],
+                    clipBehavior: Clip.antiAlias,
+                    child: getMainIcon(),
+                  ),
+                ),
+              )),
+          Positioned(
+              left: (controller.isAnimating ? textAnim.value : selectedIndex) *
+                  (_size.width / widget.icons.length),
+              top: _size.height /30,
+              child: Container(
+                alignment: Alignment.center,
+                margin: EdgeInsets.only(left: sectionWidth / 6),
+                child: SizedBox(
+                  height: 30.0,
+                  width: sectionWidth,
+                  child: Material(
+                    color: Colors.transparent,
+                    clipBehavior: Clip.antiAlias,
+                    child: getMainIcon(),
+                    // child: Text(
+                    //   widget.names[selectedIndex],
+                    //   style: TextStyle(
+                    //       color: widget.textColor,
+                    //       fontSize: 20.0,
+                    //       fontWeight: FontWeight.w700),
+                    // ),
+                  ),
+                ),
+              )),
+        ],
+      ),
+    );
   }
 }
