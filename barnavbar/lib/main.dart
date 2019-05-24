@@ -79,7 +79,7 @@ class _BarNavbarState extends State<BarNavbar>
   int newIndex = 0; // new one that has to be updated
 
   Animation<double> posAnim; //animation of the selected bar
-//   Animation<double> colorAnim;
+  Animation<Color> colorAnim;
   //color change** for the time being double but I think color would be better
   Animation<double> squeezAnim; //squeez to add a good touch
   Animation<double>
@@ -97,9 +97,10 @@ class _BarNavbarState extends State<BarNavbar>
     posAnim = new Tween<double>(
             begin: selectedIndex * 1.0, end: (selectedIndex + 1) * 1.0)
         .animate(CurvedAnimation(parent: controller, curve: Curves.bounceIn));
-    // colorAnim = new Tween<double>(
-    //         begin: selectedIndex * 1.0, end: (selectedIndex + 1) * 1.0)
-    // .animate(CurvedAnimation(parent: controller, curve: Curves.bounceIn));
+    colorAnim = new Tween<Color>(
+            begin: widget.colors[selectedIndex],
+            end: widget.colors[(selectedIndex + 1)])
+        .animate(CurvedAnimation(parent: controller, curve: Curves.bounceIn));
     squeezAnim = new Tween(begin: fullLength, end: squeezLength).animate(
         CurvedAnimation(
             parent: controller,
@@ -200,18 +201,31 @@ class _BarNavbarState extends State<BarNavbar>
     // function to check if the button is tapped
   }
 
+  Color getColor() {
+    Color color;
+    if (controller.value < 0.5) {
+      color = widget.colors[selectedIndex];
+    } else {
+      color = widget.colors[newIndex];
+    }
+    return color;
+  }
+
   // get the selected icon
   Icon getMainIcon() {
     IconData icon;
+    Color color;
     if (controller.value < 0.5) {
       icon = widget.icons[selectedIndex];
+      color = widget.colors[selectedIndex];
     } else {
       icon = widget.icons[newIndex];
+      color = widget.colors[newIndex];
     }
     return Icon(
       icon,
       size: 30.0,
-      color: widget.colors[newIndex],
+      color: color,
     );
   }
 
@@ -253,16 +267,15 @@ class _BarNavbarState extends State<BarNavbar>
                       ? stretchAnim.value
                       : (squeezAnim.value / squeezAnim.value) * sectionWidth,
                   child: Material(
-                    color: widget.colors[selectedIndex],
+                    color: getColor(),
                     clipBehavior: Clip.antiAlias,
-                    child: getMainIcon(),
                   ),
                 ),
               )),
           Positioned(
               left: (controller.isAnimating ? textAnim.value : selectedIndex) *
                   (_size.width / widget.icons.length),
-              top: _size.height /30,
+              top: _size.height / 30,
               child: Container(
                 alignment: Alignment.center,
                 margin: EdgeInsets.only(left: sectionWidth / 6),
@@ -270,8 +283,9 @@ class _BarNavbarState extends State<BarNavbar>
                   height: 30.0,
                   width: sectionWidth,
                   child: Material(
-                    color: Colors.transparent,
+                    color: Colors.white,
                     clipBehavior: Clip.antiAlias,
+                    // elevation: 2.0,
                     child: getMainIcon(),
                     // child: Text(
                     //   widget.names[selectedIndex],
