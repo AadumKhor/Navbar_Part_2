@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter/material.dart';
+import 'package:vector_math/vector_math_64.dart' as math;
 
 void main() => runApp(MyApp());
 
@@ -243,7 +244,40 @@ class ParabolicClipper extends CustomClipper<Path> {
 
   @override
   Path getClip(Size size) {
-    return null;
+    final sectionWidth = size.width / numberOfIcons;
+    var path = new Path();
+
+    path.moveTo(0.0, 0.0);
+    // var controlPoint = sectionWidth/2;
+
+    final curveControlOffset = sectionWidth * 0.45;
+
+    final topPadding = topPaddingFactor * size.height;
+
+    path.lineTo((animatedIndex * sectionWidth) - curveControlOffset, 0);
+
+    final firstControlPoint = Offset((animatedIndex * sectionWidth), 0);
+
+    final secondControlPoint =
+        Offset((animatedIndex * sectionWidth), iconHeight);
+    final secondEndPoint =
+        Offset((animatedIndex * sectionWidth) + curveControlOffset, iconHeight);
+
+    path.cubicTo(
+        firstControlPoint.dx,
+        firstControlPoint.dy,
+        secondControlPoint.dx,
+        secondControlPoint.dy,
+        secondEndPoint.dx,
+        secondEndPoint.dy);
+
+    path = path
+        .transform(Matrix4.translation(math.Vector3(0, topPadding, 0)).storage);
+
+    path.lineTo(size.width, size.height);
+    path.lineTo(0, size.height);
+    path.close();
+    return path;
   }
 
   @override
