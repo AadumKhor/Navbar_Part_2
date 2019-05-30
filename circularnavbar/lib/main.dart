@@ -1,24 +1,63 @@
 import 'package:flutter/material.dart';
-
-import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math_64.dart' as math;
 
-void main() => runApp(MyApp());
+void main() => runApp(Home());
 
-class MyApp extends StatelessWidget {
+class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Material App',
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Cicular Navbar'),
-        ),
-        body: Center(
-          child: Container(
-            child: Text('I can do this all day'),
-          ),
-        ),
+      title: 'Navbars',
+      debugShowCheckedModeBanner: false,
+      home: MyApp(),
+    );
+  }
+}
+
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
+  int selectedIndex = 0;
+  AnimationController controller;
+
+  @override
+  void initState() {
+    controller = new AnimationController(
+        vsync: this, duration: Duration(milliseconds: 500));
+    controller.addListener(() => setState(() {}));
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('CircularNavbar test'),
+        backgroundColor: Colors.blue,
+      ),
+      body: Center(
+        child: Text('I am IronMan'),
+      ),
+      bottomNavigationBar: CircularNavbar(
+        colors: [Colors.blue, Colors.green, Colors.white, Colors.black],
+        icons: [Icons.home, Icons.list, Icons.ac_unit, Icons.access_alarm],
+        names: ["Home", "List", "AC", "Alerts"],
+        bgColor: Colors.red,
+        selectedIndex: selectedIndex,
+        tapCallback: (int index) {
+          selectedIndex = index;
+          controller.forward();
+          controller.reset();
+        },
       ),
     );
   }
@@ -41,7 +80,8 @@ class CircularNavbar extends StatefulWidget {
       this.selectedIndex,
       @required this.tapCallback});
   @override
-  _CircularNavbarState createState() => _CircularNavbarState();
+  _CircularNavbarState createState() =>
+      _CircularNavbarState(selectedIndex);
 }
 
 class _CircularNavbarState extends State<CircularNavbar>
@@ -56,6 +96,7 @@ class _CircularNavbarState extends State<CircularNavbar>
   Animation<double> riseAnim;
   AnimationController controller;
 
+  _CircularNavbarState(selectedIndex);
   @override
   void initState() {
     sinkAnim = new Tween<double>(begin: 0.0, end: _circleBottomPosition)

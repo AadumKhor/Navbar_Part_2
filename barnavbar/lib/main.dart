@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
           icons: icons,
           colors: colors,
           names: names,
-          bgColor: Colors.white,
+          bgColor: Colors.black,
           textColor: Colors.black,
           selectedIndex: selectedIndex,
           tapCallback: (int index) {
@@ -58,7 +58,7 @@ class BarNavbar extends StatefulWidget {
 
   BarNavbar(
       {Key key,
-      this.bgColor = Colors.white,
+      this.bgColor = Colors.black,
       this.icons = const [],
       this.colors = const [],
       this.names = const [],
@@ -73,8 +73,8 @@ class _BarNavbarState extends State<BarNavbar>
     with SingleTickerProviderStateMixin {
   Size _size;
 
-  double squeezLength = 10.0; //squeezLength of the bar
-  double fullLength = 25.0; // full Length of the bar
+  double squeezLength = 80.0; //squeezLength of the bar
+  double fullLength = 137.0; // full Length of the bar
   int selectedIndex = 0; // selected currently
   int newIndex = 0; // new one that has to be updated
 
@@ -101,13 +101,10 @@ class _BarNavbarState extends State<BarNavbar>
             begin: widget.colors[selectedIndex],
             end: widget.colors[(selectedIndex + 1)])
         .animate(CurvedAnimation(parent: controller, curve: Curves.bounceIn));
-    squeezAnim = new Tween(begin: fullLength, end: squeezLength).animate(
-        CurvedAnimation(
-            parent: controller,
-            curve: Interval(0.0, 0.15, curve: Curves.ease)));
-    stretchAnim = new Tween(begin: squeezLength, end: fullLength).animate(
-        CurvedAnimation(
-            parent: controller, curve: Interval(0.5, 1.0, curve: Curves.ease)));
+    squeezAnim = new Tween(begin: fullLength, end: squeezLength)
+        .animate(CurvedAnimation(parent: controller, curve: Curves.ease));
+    stretchAnim = new Tween(begin: squeezLength, end: fullLength)
+        .animate(CurvedAnimation(parent: controller, curve: Curves.ease));
     controller.addListener(() => setState(() {}));
     controller.addStatusListener((status) {
       if (controller.isCompleted) {
@@ -181,11 +178,12 @@ class _BarNavbarState extends State<BarNavbar>
       parent: controller,
       curve: Curves.ease,
     ));
-    stretchAnim = Tween<double>(begin: squeezLength, end: fullLength)
-        .animate(CurvedAnimation(
-      parent: controller,
-      curve: Curves.ease,
-    ));
+
+    // stretchAnim = Tween<double>(begin: squeezLength, end: fullLength)
+    //     .animate(CurvedAnimation(
+    //   parent: controller,
+    //   curve: Curves.ease,
+    // ));
 
     controller.forward();
   }
@@ -242,7 +240,7 @@ class _BarNavbarState extends State<BarNavbar>
             height: kBottomNavigationBarHeight * 1.2,
             width: double.infinity,
             child: Material(
-              color: Colors.white,
+              color: Colors.black,
               elevation: 4,
               child: Container(
                 margin: EdgeInsets.only(top: kBottomNavigationBarHeight * 0.4),
@@ -264,8 +262,8 @@ class _BarNavbarState extends State<BarNavbar>
                 child: SizedBox(
                   height: 4.0,
                   width: squeezAnim.isCompleted
-                      ? stretchAnim.value
-                      : (squeezAnim.value / squeezAnim.value) * sectionWidth,
+                      ? fullLength
+                      : (squeezAnim.value) * sectionWidth/3,
                   child: Material(
                     color: getColor(),
                     clipBehavior: Clip.antiAlias,
@@ -277,23 +275,16 @@ class _BarNavbarState extends State<BarNavbar>
                   (_size.width / widget.icons.length),
               top: _size.height / 30,
               child: Container(
-                alignment: Alignment.center,
+                alignment: Alignment.centerLeft,
                 margin: EdgeInsets.only(left: sectionWidth / 6),
                 child: SizedBox(
                   height: 30.0,
                   width: sectionWidth,
                   child: Material(
-                    color: Colors.white,
+                    color: Colors.black,
                     clipBehavior: Clip.antiAlias,
                     // elevation: 2.0,
                     child: getMainIcon(),
-                    // child: Text(
-                    //   widget.names[selectedIndex],
-                    //   style: TextStyle(
-                    //       color: widget.textColor,
-                    //       fontSize: 20.0,
-                    //       fontWeight: FontWeight.w700),
-                    // ),
                   ),
                 ),
               )),
